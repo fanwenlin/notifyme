@@ -1,0 +1,3 @@
+[telegram]
+bot_token = "your-bot-token-here"
+chat_id = "your-chat-id-here" 
