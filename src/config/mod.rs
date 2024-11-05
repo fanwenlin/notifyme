@@ -152,30 +152,7 @@ impl ConfigSet {
         let mut handlers = Vec::new();
 
         for config in &self.notification_configs.configs {
-            let handler: Box<dyn NotificationSender> = match config {
-                NotificationConfigType::Telegram(TelegramConfig { token, chat_id, .. }) => {
-                    Box::new(crate::notifications::telegram::TelegramNotifier::new(
-                        token.clone(),
-                        chat_id.clone(),
-                    ))
-                }
-                NotificationConfigType::Email(_) => {
-                    return Err("Email notification not implemented yet".into())
-                }
-                NotificationConfigType::Http(_) => {
-                    return Err("HTTP notification not implemented yet".into())
-                }
-                NotificationConfigType::Cmd(_) => {
-                    return Err("Command notification not implemented yet".into())
-                }
-                NotificationConfigType::TwilioSms(_) => {
-                    return Err("Twilio SMS notification not implemented yet".into())
-                }
-                NotificationConfigType::PhoneCall(_) => {
-                    return Err("Phone call notification not implemented yet".into())
-                }
-            };
-
+            let handler = crate::notifications::create_notification_sender(config)?;
             handlers.push(handler);
         }
         Ok(handlers)
