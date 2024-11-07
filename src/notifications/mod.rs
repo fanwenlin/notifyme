@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 pub mod email;
 pub mod http_request;
+pub mod lark;
 pub mod phone_call_twilio;
 pub mod sms_twilio;
 pub mod telegram;
@@ -31,5 +32,10 @@ pub fn create_notification_sender(
         NotificationConfigType::PhoneCall(_) => {
             Err("Phone call notification not implemented yet".into())
         }
+        NotificationConfigType::Lark(config) => Ok(Box::new(lark::LarkNotifier::new(
+            config.webhook_url.clone(),
+            config.sign_key.clone(),
+            config.at.clone(),
+        ))),
     }
 }

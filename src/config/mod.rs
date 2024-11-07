@@ -39,6 +39,8 @@ pub enum NotificationConfigType {
     TwilioSms(TwilioSmsConfig),
     #[serde(rename = "phone-call")]
     PhoneCall(PhoneCallConfig),
+    #[serde(rename = "lark")]
+    Lark(LarkConfig),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -49,6 +51,13 @@ pub struct TelegramConfig {
     pub parse_mode: Option<String>,
     pub disable_web_page_preview: Option<bool>,
     pub disable_notification: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LarkConfig {
+    pub webhook_url: String,
+    pub sign_key: String,
+    pub at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

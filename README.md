@@ -92,6 +92,12 @@ The default config set name is `default`
             <disable_notification>false</disable_notification>
         </telegram>
 
+        <lark>
+            <webhook_url>https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url</webhook_url>
+            <sign_key>your-sign-key</sign_key>
+            <at_user_id>optional-user-id-to-mention</at_user_id>
+        </lark>
+
         <sms-twilio>
             <provider>twilio</provider>
             <account_sid>YOUR_ACCOUNT_SID</account_sid>

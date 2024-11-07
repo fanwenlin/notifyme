@@ -1,3 +1,8 @@
 [telegram]
 bot_token = "your-bot-token-here"
-chat_id = "your-chat-id-here" 
+chat_id = "your-chat-id-here"
+
+[lark]
+webhook_url = "your-webhook-url-here"
+sign_key = "your-sign-key-here"
+at_user_id = "your-at-user-id-here"
