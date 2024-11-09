@@ -1,170 +1,103 @@
-# NOTIFY ME
-> **Note**: This repository is currently under development. The documentation above represents the planned design and functionality. The installation methods and some commands may not be available yet.
+# NotifyMe
 
-A CLI tool to monitor long-running commands and send notifications in different ways including telegram, email, sms, phone call... 
-You can customize your various config-set in seperate config files.
+<p align="center">
+  A powerful CLI tool for monitoring long-running commands and sending notifications through multiple channels
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#development-status">Status</a>
+</p>
+
+> **Note**: This project is under active development. Some features mentioned in the documentation may not be fully implemented yet. See [Development Status](#development-status) for details.
+
+## Features
+
+- 🚀 Monitor long-running commands and get notified upon completion
+- 📱 Multiple notification channels:
+  - Telegram
+  - Lark (Feishu)
+  - Email (coming soon)
+  - SMS via Twilio (coming soon)
+  - Phone calls via Twilio (coming soon)
+- ⚙️ Customizable configuration system
+- 🔧 Interactive configuration editor
+- 🔄 Retry mechanisms and error handling (coming soon)
+
+## Use Cases
+
+- Monitor long-running builds, deployments, or data processing tasks
+- You want to monitor the status of a long-running command and send notifications when it's finished.
+- You are about to go outside after starting a command and want to know if you need get back early to fix something.
+- You're switching to video games and want to get noticed when it's time to turn back to your job.
+
+## Installation
+
+### Prerequisites
+- Rust 1.70 or higher
+- Linux or macOS (Windows support coming soon)
+
+### From Source
+
+```bash
+cargo install --git https://github.com/fanwenlin/notifyme
+```
 
 ## Quick Start
-1. Install the package:
-linux:
-```bash
-sudo apt-get install notifyme
-```
-macOS:
-```bash
-brew install notifyme
-```
-2. [optional] Create a config file:
-...
 
-3. Run the command:
+1. Create a default configuration:
+```bash
+notifyme create default
+```
+
+2. Edit the configuration to add your notification preferences:
+```bash
+notifyme edit default
+```
+
+3. Run a command with notifications:
 ```bash
 # Using the delimiter
 notifyme run --config myconfig -- ping -c 5 google.com
 
-# Default config
+# With Default config
 notifyme run -- ping -c 5 google.com
 ```
 
-## command list
+## Configuration
 
-- run command
-```bash
-notifyme run [-c config-set] <command> <args>
-```
+Configurations are stored in XML format at `~/.config/notifyme/configs/`. Each configuration set can include multiple notification methods.
 
-- list config sets
-```bash
-notifyme list
-```
+For detailed configuration options, see [Configuration Guide](docs/configuration.md) (coming soon).
 
-- create config set
-```bash
-notifyme create <config set name>
-```
+## Development Status
 
-- edit config set
-```bash
-notifyme edit <config set name>
-```
+### Currently Implemented
+- ✅ Basic CLI framework
+- ✅ Configuration management system
+- ✅ Interactive configuration editor
+- ✅ Telegram notifications
+- ✅ Lark (Feishu) notifications
+- ✅ Command execution and monitoring
 
-- delete config set
-```bash
-notifyme delete <config set name>
-```
-
-- test config set
-```bash
-notifyme test <config set name>
-```
+### In Progress
+- 🔄 Email notification support
+- 🔄 SMS notifications via Twilio
+- 🔄 Phone call notifications
+- 🔄 HTTP webhook support
+- 🔄 Configuration validation
+- 🔄 Error handling improvements
 
 
-## Configuration Format
-Configuration files are stored in `~/.config/notifyme/configs/`
-The default config set name is `default`
+## License
 
-```xml
-<config-set name="default">
-    <notification-configs>
-        <email>
-            <to>email@example.com</to>
-            <from>email@example.com</from>
-            <subject>Test Email</subject>
-            <body>This is a test email.</body>
-            <smtp>
-                <host>smtp.example.com</host>
-                <port>587</port>
-                <username>username</username>
-                <password>password</password>
-                <encryption>tls</encryption>
-                <auth>true</auth>
-                <debug>false</debug>
-                <timeout>10</timeout>
-                <tls_verify>false</tls_verify>
-                <tls_ca_certs>/path/to/ca_certs</tls_ca_certs>
-                <tls_key>/path/to/key</tls_key>
-                <tls_cert>/path/to/cert</tls_cert>
-                <tls_ciphers>TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:...</tls_ciphers>
-            </smtp>
-        </email>
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-        <telegram>
-            <token>YOUR_BOT_TOKEN</token>
-            <chat_id>YOUR_CHAT_ID</chat_id>
-            <message>This is a test message.</message>
-            <parse_mode>HTML</parse_mode>
-            <disable_web_page_preview>true</disable_web_page_preview>
-            <disable_notification>false</disable_notification>
-        </telegram>
+## Acknowledgments
 
-        <lark>
-            <webhook_url>https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url</webhook_url>
-            <sign_key>your-sign-key</sign_key>
-            <at_user_id>optional-user-id-to-mention</at_user_id>
-        </lark>
-
-        <sms-twilio>
-            <provider>twilio</provider>
-            <account_sid>YOUR_ACCOUNT_SID</account_sid>
-            <auth_token>YOUR_AUTH_TOKEN</auth_token>
-            <from>+15017122661</from>
-            <to>+15558675310</to>
-            <body>This is a test message.</body>
-            <media_urls>
-                <url>https://example.com/image.jpg</url>
-            </media_urls>
-            <mms>true</mms>
-            <sender_id>YOUR_SENDER_ID</sender_id>
-            <carrier>att</carrier>
-            <carrier_lookup>true</carrier_lookup>
-            <carrier_lookup_country_code>US</carrier_lookup_country_code>
-        </sms-twilio>
-        
-        <phone-call>
-            <provider>twilio</provider>
-            <account_sid>YOUR_ACCOUNT_SID</account_sid>
-            <auth_token>YOUR_AUTH_TOKEN</auth_token>
-            <from>+15017122661</from>
-            <to>+15558675310</to>
-            <url>https://example.com/call.xml</url>
-            <method>POST</method>
-            <timeout>20</timeout>
-            <record>true</record>
-            <status_callback>https://example.com/status.php</status_callback>
-            <status_callback_method>POST</status_callback_method>
-            <machine_detection>true</machine_detection>
-            <machine_detection_timeout>30</machine_detection_timeout>
-            <machine_detection_url>https://example.com/machine_detection.php</machine_detection_url>
-            <machine_detection_method>POST</machine_detection_method>
-        </phone-call>
-
-        <cmd>
-            <command>ping</command>
-            <args>-c 5 google.com</args>
-            <timeout>10</timeout>
-            <retry>3</retry>
-            <retry_delay>5</retry_delay>
-        </cmd>
-        
-        <http>
-            <url>https://example.com/api</url>
-            <method>POST</method>
-            <headers>
-                <key>Content-Type</key>
-                <value>application/json</value>
-            </headers>
-            <body>{"key": "value"}</body>
-            <timeout>10</timeout>
-            <retry>3</retry>
-            <retry_delay>5</retry_delay>
-        </http>
-    </notification-configs>
-</config-set>
-```
-
-# Next Steps
-- Implement Notification Senders: Flesh out each notification sender module to perform actual API calls or actions.
-- Handle Asynchronous Operations: Ensure that network operations are handled asynchronously using async/await and tokio.
-- Enhance Error Handling: Provide detailed error messages and handle different error cases.
-- Logging and Debugging: Use the log crate to add logging statements for better observability.
-- Configuration Validation: Validate the configuration files and provide helpful feedback to users.
+- Built with [Rust](https://www.rust-lang.org/)
+- Uses [clap](https://github.com/clap-rs/clap) for CLI parsing
+- Uses [ratatui](https://github.com/ratatui-org/ratatui) for terminal UI
