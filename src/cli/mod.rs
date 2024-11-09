@@ -31,6 +31,11 @@ pub enum Commands {
         /// Configuration set name
         name: String,
     },
+    /// Edit a configuration set
+    Edit {
+        /// Configuration set name
+        name: String,
+    },
     /// Delete a configuration set
     Delete {
         /// Configuration set name

@@ -12,7 +12,7 @@ use std::{collections::HashMap, io::Error};
 const CONFIG_DIR: &str = ".config/notifyme/configs/";
 const DEFAULT_CONFIG_NAME: &str = "default";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename = "config-set")]
 pub struct ConfigSet {
     #[serde(rename = "@name")]
@@ -21,14 +21,14 @@ pub struct ConfigSet {
     pub notification_configs: NotificationConfigs,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NotificationConfigs {
     #[serde(default)]
     #[serde(rename = "$value")]
     pub configs: Vec<NotificationConfigType>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum NotificationConfigType {
     Telegram(TelegramConfig),
@@ -43,24 +43,20 @@ pub enum NotificationConfigType {
     Lark(LarkConfig),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct TelegramConfig {
     pub token: String,
     pub chat_id: String,
-    pub message: Option<String>,
-    pub parse_mode: Option<String>,
-    pub disable_web_page_preview: Option<bool>,
-    pub disable_notification: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct LarkConfig {
     pub webhook_url: String,
     pub sign_key: String,
     pub at: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct EmailConfig {
     pub to: String,
     pub from: String,
@@ -69,7 +65,7 @@ pub struct EmailConfig {
     pub smtp: SmtpConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SmtpConfig {
     pub host: String,
     pub port: u16,
@@ -86,7 +82,7 @@ pub struct SmtpConfig {
     pub tls_ciphers: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct HttpConfig {
     pub url: String,
     pub method: String,
@@ -97,13 +93,13 @@ pub struct HttpConfig {
     pub retry_delay: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct HttpHeader {
     pub key: String,
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CommandConfig {
     pub command: String,
     pub args: Option<String>,
@@ -112,7 +108,7 @@ pub struct CommandConfig {
     pub retry_delay: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct TwilioSmsConfig {
     pub account_sid: String,
     pub auth_token: String,
@@ -127,7 +123,7 @@ pub struct TwilioSmsConfig {
     pub carrier_lookup_country_code: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PhoneCallConfig {
     pub account_sid: String,
     pub auth_token: String,
@@ -378,6 +374,26 @@ impl ConfigManager {
         }
 
         Ok(configs)
+    }
+
+    pub fn delete_config(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let config_path = self.config_dir.join(format!("{}.xml", name));
+        if config_path.exists() {
+            fs::remove_file(config_path.clone()).map_err(|e| {
+                error!(
+                    "Failed to delete config {}, error: {}",
+                    config_path.display(),
+                    e
+                );
+                e
+            })?;
+        } else {
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("Config set '{}' not found", name),
+            )));
+        }
+        Ok(())
     }
 }
 

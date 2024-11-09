@@ -1,4 +1,5 @@
 use crate::config::{ConfigManager, ConfigSet, NotificationConfigs};
+use crate::editor::Editor;
 use crate::executor::CommandExecutor;
 use log::{error, info};
 use std::error::Error;
@@ -83,6 +84,27 @@ impl App {
         info!("Command executed and notifications sent successfully");
         Ok(())
     }
+
+    pub fn delete_config(&self, name: &str) -> Result<(), Box<dyn Error>> {
+        self.config_manager.delete_config(name)?;
+        println!("Config set '{}' deleted.", name);
+        Ok(())
+    }
+
+    pub fn edit_config(&self, name: &str) -> Result<(), Box<dyn Error>> {
+        // Read the existing config
+        let config_set = self.config_manager.read_config(name)?;
+
+        // Create and run the editor
+        let mut editor = Editor::new(config_set);
+        let updated_config = editor.run()?;
+
+        // Save the updated config
+        self.config_manager.write_config(&updated_config)?;
+
+        println!("Config set '{}' updated.", name);
+        Ok(())
+    }
 }
 
 // Keep these for backward compatibility
@@ -92,6 +114,14 @@ pub fn list_configs() -> Result<(), Box<dyn Error>> {
 
 pub fn create_config(name: &str) -> Result<(), Box<dyn Error>> {
     App::new().create_config(name)
+}
+
+pub fn delete_config(name: &str) -> Result<(), Box<dyn Error>> {
+    App::new().delete_config(name)
+}
+
+pub fn edit_config(name: &str) -> Result<(), Box<dyn Error>> {
+    App::new().edit_config(name)
 }
 
 pub async fn run_command(

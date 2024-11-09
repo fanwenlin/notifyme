@@ -1,6 +1,7 @@
 mod app;
 mod cli;
 mod config;
+mod editor;
 mod error;
 mod executor;
 mod notifications;
@@ -62,8 +63,18 @@ fn main() {
             }
         }
 
-        Commands::Delete { name: _ } => {
-            // TODO: Implement delete logic
+        Commands::Edit { name } => {
+            if let Err(e) = app::edit_config(&name) {
+                eprintln!("Error editing config '{}': {}", name, e);
+                std::process::exit(1);
+            }
+        }
+
+        Commands::Delete { name } => {
+            if let Err(e) = app::delete_config(&name) {
+                eprintln!("Error deleting config '{}': {}", name, e);
+                std::process::exit(1);
+            }
         }
         Commands::Test { name: _ } => {
             // TODO: Implement test logic

@@ -43,6 +43,11 @@ notifyme list
 notifyme create <config set name>
 ```
 
+- edit config set
+```bash
+notifyme edit <config set name>
+```
+
 - delete config set
 ```bash
 notifyme delete <config set name>
