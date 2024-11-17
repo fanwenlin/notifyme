@@ -1,7 +1,19 @@
 [package]
 name = "notifyme"
 version = "0.1.0"
+description = "A CLI tool for monitoring commands and sending notifications"
+authors = ["fanwenlin <fwl@wenlin.fun>"]
+license = "MIT"
+repository = "https://github.com/fanwenlin/notifyme"
+documentation = "https://github.com/fanwenlin/notifyme#readme"
+homepage = "https://github.com/fanwenlin/notifyme"
+categories = ["command-line-utilities"]
+keywords = ["notification", "cli", "monitoring", "telegram", "lark"]
 edition = "2021"
+
+[[bin]]
+name = "notifyme"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
@@ -26,7 +38,10 @@ base64 = "0.21"
 ratatui = "0.24.0"
 crossterm = "0.27.0"
 
+
+
 [dev-dependencies]
 once_cell = "1.18"
 toml = "0.8"
 serde = { version = "1.0", features = ["derive"] }
+
