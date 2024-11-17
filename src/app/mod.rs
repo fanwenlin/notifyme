@@ -65,19 +65,25 @@ impl App {
 
         // 3. Execute the command
         let mut executor = CommandExecutor::new(cmd.to_string(), args.to_vec());
-        executor.execute().await?;
+        let execute_err = match executor.execute().await {
+            Ok(_) => None,
+            Err(e) => Some(e),
+        };
 
         // 4. Get the output and prepare notification message
-        let message = match executor.get_output() {
+        let mut message = match executor.get_output() {
             Some(output) => format!("Command output:\n{}", output),
             None => "Command executed but produced no output".to_string(),
         };
+
+        if let Some(e) = execute_err {
+            message.push_str(&format!("\nCommand failed with error: {}", e));
+        }
 
         // 5. Send notifications through all handlers
         for handler in handlers {
             if let Err(e) = handler.send(&message).await {
                 error!("Failed to send notification: {}", e);
-                // Optionally: return Err(e) if you want to fail on first error
             }
         }
 

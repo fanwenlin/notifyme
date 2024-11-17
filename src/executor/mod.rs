@@ -35,7 +35,7 @@ impl CommandExecutor {
         let child_id = child.id();
         let mut sigint = signal(SignalKind::interrupt())?;
         let mut stdout = child.stdout.take().ok_or("Failed to capture stdout")?;
-        let mut output = String::new();
+        self.output = Some(String::new());
 
         tokio::select! {
             result = async {
@@ -46,12 +46,15 @@ impl CommandExecutor {
                     }
                     let chunk = String::from_utf8_lossy(&buffer[..n]);
                     print!("{}", chunk);
-                    output.push_str(&chunk);
+                    self.output.as_mut().unwrap().push_str(&chunk);
                 }
 
-                let status = child.wait().await?;
+                let status = child.wait().await.map_err(|e| {
+                    error!("Failed to wait for child process: {}", e);
+                    e
+                })?;
+
                 if status.success() {
-                    self.output = Some(output);
                     info!("Command executed successfully");
                     Ok(())
                 } else {

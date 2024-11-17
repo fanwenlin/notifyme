@@ -66,14 +66,6 @@ impl NotificationSender for LarkNotifier {
             }
         });
 
-        println!(
-            "Sending Lark request to {}\nTimestamp: {}\nSign: {}\nBody: {}",
-            self.webhook_url,
-            timestamp,
-            sign,
-            serde_json::to_string_pretty(&body)?
-        );
-
         let response = self
             .client
             .post(&self.webhook_url)
@@ -82,22 +74,22 @@ impl NotificationSender for LarkNotifier {
             .await?;
 
         let status = response.status();
-        let response_body: LarkResponse = response.json().await?;
+        let text = response.text().await?;
+        let response_body: LarkResponse = match serde_json::from_str(&text) {
+            Ok(body) => body,
+            Err(e) => {
+                error!("Failed to parse Lark response: {}, body: {}", e, text);
+                return Err(e.into());
+            }
+        };
 
         if status.is_success() && response_body.code == 0 {
-            info!(
-                "Lark message sent successfully\nRequest: {}\nResponse: {:?}",
-                serde_json::to_string_pretty(&body)?,
-                response_body
-            );
+            info!("Lark message sent successfully");
             Ok(())
         } else {
             error!(
-                "Failed to send Lark message\nRequest: {}\nStatus: {}\nCode: {}\nMsg: {}",
-                serde_json::to_string_pretty(&body)?,
-                status,
-                response_body.code,
-                response_body.msg
+                "Failed to send Lark message\nStatus: {}\nCode: {}\nMsg: {}",
+                status, response_body.code, response_body.msg
             );
             Err(format!(
                 "Failed to send Lark message: status={}, code={}, msg={}",
