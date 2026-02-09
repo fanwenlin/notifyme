@@ -67,6 +67,30 @@ notifyme run --config myconfig -- ping -c 5 google.com
 notifyme run -- ping -c 5 google.com
 ```
 
+4. Send a notification directly (for integration):
+```bash
+notifyme send "Critical issue: Database is down!"
+```
+
+## Skill Integration (for Agents)
+
+NotifyMe can be used as a "Skill" for AI Agents (like Gemini CLI, Cursor, or specialized GPTs) to allow them to grab your attention when they hit a roadblock.
+
+### Installing for Gemini CLI
+
+Add the following to your Gemini CLI configuration or skill directory:
+
+1. Copy the `SKILL.md` file to your skills folder.
+2. Ensure the `notifyme` binary is in your `PATH`.
+3. The Agent will now be able to use the `notifyme send` command whenever it needs to notify you about critical events or manual intervention.
+
+### Integration Principle
+
+The `notifyme send` command is designed to be a "fire-and-forget" high-priority alert. When an Agent executes this command:
+- It uses your pre-configured channels (Lark, Telegram, etc.).
+- It automatically handles user mentions (@) and notification priority.
+- It provides a standardized `[NotifyMe]` prefix for easy filtering.
+
 ## Configuration
 
 Configurations are stored in XML format at `~/.config/notifyme/configs/`. Each configuration set can include multiple notification methods.

@@ -1,7 +1,7 @@
-use crate::notifications::NotificationSender;
+use crate::notifications::{NotificationOptions, NotificationSender};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use hmac::{Hmac, Mac};
-use log::{debug, error, info};
+use log::{error, info};
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::json;
@@ -28,18 +28,19 @@ impl LarkNotifier {
 
     fn generate_sign(&self, timestamp: u64) -> String {
         let string_to_sign = format!("{}\n{}", timestamp, self.sign_key);
-        let mut mac = Hmac::<Sha256>::new_from_slice(string_to_sign.as_bytes())
+        let mac = Hmac::<Sha256>::new_from_slice(string_to_sign.as_bytes())
             .expect("HMAC can take key of any size");
         let result = mac.finalize();
         STANDARD.encode(result.into_bytes())
     }
 
-    fn format_message(&self, message: &str) -> String {
-        if let Some(user_id) = &self.at_user_id {
-            format!("<at user_id=\"{}\"></at>\n{}", user_id, message)
-        } else {
-            message.to_string()
+    fn format_message(&self, message: &str, mention_user: bool) -> String {
+        if mention_user {
+            if let Some(user_id) = &self.at_user_id {
+                return format!("<at user_id=\"{}\"></at>\n{}", user_id, message);
+            }
         }
+        message.to_string()
     }
 }
 
@@ -51,11 +52,15 @@ struct LarkResponse {
 
 #[async_trait::async_trait]
 impl NotificationSender for LarkNotifier {
-    async fn send(&self, message: &str) -> Result<(), Box<dyn Error>> {
+    async fn send_with_options(
+        &self,
+        message: &str,
+        options: &NotificationOptions,
+    ) -> Result<(), Box<dyn Error>> {
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
 
         let sign = self.generate_sign(timestamp);
-        let formatted_message = self.format_message(message);
+        let formatted_message = self.format_message(message, options.mention_user);
 
         let body = json!({
             "timestamp": timestamp,

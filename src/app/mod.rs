@@ -1,6 +1,7 @@
-use crate::config::{ConfigManager, ConfigSet, NotificationConfigs};
+use crate::config::{ConfigManager, ConfigSet};
 use crate::editor::Editor;
 use crate::executor::CommandExecutor;
+use crate::notifications::NotificationOptions;
 use log::{error, info};
 use std::error::Error;
 
@@ -111,6 +112,57 @@ impl App {
         println!("Config set '{}' updated.", name);
         Ok(())
     }
+
+    pub async fn send_notification(
+        &self,
+        config_set_name: &str,
+        headline: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        info!("Sending notification with config set: {}", config_set_name);
+
+        // 1. Read the config set
+        let config_set = match self.config_manager.read_config(config_set_name) {
+            Ok(config) => config,
+            Err(e) => {
+                return Err(Box::new(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    format!("Failed to read config set '{}': {}", config_set_name, e),
+                )))
+            }
+        };
+
+        // 2. Get notification handlers
+        let handlers = match config_set.get_notification_handlers() {
+            Ok(h) => h,
+            Err(e) => {
+                return Err(Box::new(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to get notification handlers: {}", e),
+                )))
+            }
+        };
+
+        // 3. Prepare message and options
+        // High impact default: Not silent, Mention user
+        let silent = false;
+        let mention_user = true;
+
+        let message = format!("[NotifyMe] {}", headline);
+        let options = NotificationOptions {
+            silent,
+            mention_user,
+        };
+
+        // 4. Send notifications
+        for handler in handlers {
+            if let Err(e) = handler.send_with_options(&message, &options).await {
+                error!("Failed to send notification: {}", e);
+            }
+        }
+
+        info!("Notification sent successfully");
+        Ok(())
+    }
 }
 
 // Keep these for backward compatibility
@@ -136,4 +188,13 @@ pub async fn run_command(
     args: &[String],
 ) -> Result<(), Box<dyn Error>> {
     App::new().run_command(config_set_name, cmd, args).await
+}
+
+pub async fn send_notification(
+    config_set_name: &str,
+    headline: &str,
+) -> Result<(), Box<dyn Error>> {
+    App::new()
+        .send_notification(config_set_name, headline)
+        .await
 }

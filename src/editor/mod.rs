@@ -8,7 +8,7 @@ use ratatui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    text::{Line, Span, Text},
+    text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
     Frame, Terminal,
 };
@@ -430,18 +430,6 @@ impl Editor {
         );
 
         f.render_widget(list, area);
-    }
-
-    fn render_add_config_hints(&self, f: &mut Frame, area: Rect) {
-        let hints = match self.mode {
-            EditorMode::Normal => "↑↓: Navigate | Enter: Select | q: Quit",
-            EditorMode::AddingConfig => "↑↓: Navigate | Enter: Add | Esc: Cancel",
-            EditorMode::Editing => "Enter: Save | Esc: Cancel",
-            EditorMode::Notification => "↑↓: Navigate | Enter: Edit Field | Esc: Back | q: Quit",
-        };
-
-        let hints = Paragraph::new(hints).block(Block::default().borders(Borders::ALL));
-        f.render_widget(hints, area);
     }
 
     fn get_notification_field_count(&self) -> usize {

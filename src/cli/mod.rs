@@ -46,4 +46,14 @@ pub enum Commands {
         /// Configuration set name
         name: String,
     },
+    /// Send a notification directly (High Impact)
+    Send {
+        /// The notification headline/message
+        #[arg()]
+        headline: String,
+
+        /// Configuration set name
+        #[arg(short, long, default_value = "default")]
+        config_set: String,
+    },
 }
