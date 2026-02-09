@@ -1,15 +1,6 @@
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::*;
+use notifyme::config::ConfigManager;
 
-    #[test]
-    fn test_read_config() {
-        // TODO: Implement test cases for reading configs
-    }
-
-    #[test]
-    fn test_write_config() {
-        // TODO: Implement test cases for writing configs
-    }
+#[test]
+fn test_config_manager_constructs() {
+    let _ = ConfigManager::new();
 }

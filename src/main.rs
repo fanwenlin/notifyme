@@ -79,5 +79,19 @@ fn main() {
         Commands::Test { name: _ } => {
             // TODO: Implement test logic
         }
+
+        Commands::Send {
+            headline,
+            config_set,
+        } => {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            if let Err(e) = rt.block_on(app::send_notification(
+                &config_set,
+                &headline,
+            )) {
+                error!("Error sending notification: {}", e);
+                std::process::exit(1);
+            }
+        }
     }
 }

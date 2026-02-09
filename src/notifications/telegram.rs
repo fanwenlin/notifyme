@@ -1,50 +1,66 @@
-use crate::notifications::NotificationSender;
+use crate::notifications::{NotificationOptions, NotificationSender};
 use reqwest::Client;
-use serde_json::json;
-use std::collections::HashMap;
+use serde_json::{json, Value};
 use std::error::Error;
+
+fn build_client() -> Client {
+    std::panic::catch_unwind(|| Client::new()).unwrap_or_else(|_| {
+        Client::builder()
+            .no_proxy()
+            .build()
+            .expect("Failed to build reqwest client")
+    })
+}
 
 pub struct TelegramNotifier {
     bot_token: String,
     chat_id: String,
+    at: Option<String>,
     client: Client,
 }
 
 impl TelegramNotifier {
-    pub fn new(bot_token: String, chat_id: String) -> Self {
+    pub fn new(bot_token: String, chat_id: String, at: Option<String>) -> Self {
         Self {
             bot_token,
             chat_id,
-            client: Client::new(),
+            at,
+            client: build_client(),
         }
     }
 
-    pub fn create(
-        params: HashMap<String, String>,
-    ) -> Result<Box<dyn NotificationSender>, Box<dyn Error>> {
-        let bot_token = params
-            .get("bot_token")
-            .ok_or("Telegram bot token not configured")?
-            .clone();
+    fn format_message(&self, message: &str, mention_user: bool) -> String {
+        if !mention_user {
+            return message.to_string();
+        }
 
-        let chat_id = params
-            .get("chat_id")
-            .ok_or("Telegram chat ID not configured")?
-            .clone();
+        let Some(at) = self.at.as_ref() else {
+            return message.to_string();
+        };
+        let at = at.trim();
+        if at.is_empty() {
+            return message.to_string();
+        }
 
-        Ok(Box::new(TelegramNotifier::new(bot_token, chat_id)))
+        format!("{} {}", at, message)
     }
-}
 
-#[async_trait::async_trait]
-impl NotificationSender for TelegramNotifier {
-    async fn send(&self, message: &str) -> Result<(), Box<dyn Error>> {
+    async fn send_inner(
+        &self,
+        message: &str,
+        options: &NotificationOptions,
+    ) -> Result<(), Box<dyn Error>> {
         let url = format!("https://api.telegram.org/bot{}/sendMessage", self.bot_token);
+        let text = self.format_message(message, options.mention_user);
 
-        let body = json!({
+        let mut body = json!({
             "chat_id": self.chat_id,
-            "text": message,
+            "text": text,
         });
+
+        if options.silent {
+            body["disable_notification"] = Value::Bool(true);
+        }
 
         let response = self.client.post(&url).json(&body).send().await?;
 
@@ -59,6 +75,22 @@ impl NotificationSender for TelegramNotifier {
             )
             .into())
         }
+    }
+}
+
+#[async_trait::async_trait]
+impl NotificationSender for TelegramNotifier {
+    async fn send(&self, message: &str) -> Result<(), Box<dyn Error>> {
+        self.send_with_options(message, &NotificationOptions::default())
+            .await
+    }
+
+    async fn send_with_options(
+        &self,
+        message: &str,
+        options: &NotificationOptions,
+    ) -> Result<(), Box<dyn Error>> {
+        self.send_inner(message, options).await
     }
 }
 
@@ -126,6 +158,7 @@ mod tests {
         let notifier = TelegramNotifier::new(
             TEST_CREDENTIALS.bot_token.clone(),
             TEST_CREDENTIALS.chat_id.clone(),
+            None,
         );
 
         runtime.block_on(async {
